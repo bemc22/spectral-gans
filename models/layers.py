@@ -11,7 +11,7 @@ class inputBlock(tf.keras.layers.Layer):
     def call(self, inputs):
 
         outputs = self.conv1(inputs)
-        outputs = self.conv2(inputs)        
+        outputs = self.conv2(outputs)        
 
         return outputs
 
@@ -84,5 +84,22 @@ class outBlock(tf.keras.layers.Layer):
         outputs = self.concat([outputs,inputs[1]])
         outputs = self.conv1(outputs)
         outputs = self.conv2(outputs)
+
+        return outputs
+
+
+class discriminator(tf.keras.layers.Layer):
+    def __init__(self, F):
+        super(discriminator, self).__init__()
+
+        self.conv1 = Conv2D(F, 3,activation='relu',padding="same")
+        self.conv2 = Conv2D(F, 3,activation='relu',padding="same")
+        self.conv3 = Conv2D(F, 3,activation='relu',padding="same")
+
+    def call(self, inputs):
+
+        outputs = self.conv1(inputs)
+        outputs = self.conv2(outputs)
+        outputs = self.conv3(outputs)
 
         return outputs

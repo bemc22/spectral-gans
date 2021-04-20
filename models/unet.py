@@ -1,4 +1,4 @@
-from models.layers import *
+from models.layers import inputBlock, downBLock, blottleBlock, upBlock, outBlock
 from tensorflow.keras.models import *
 from tensorflow.keras.layers import Input
 
