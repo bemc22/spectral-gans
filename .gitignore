@@ -1,2 +1,4 @@
 data
 desktop.ini
+.ipynb_checkpoints
+__pycache__
