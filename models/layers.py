@@ -1,105 +1,81 @@
 import tensorflow as tf
 from tensorflow.keras.layers import *
 
-class inputBlock(tf.keras.layers.Layer):
-    def __init__(self, F):
-        super(inputBlock, self).__init__()
 
-        self.conv1 = Conv2D(F, 3,activation='relu',padding="same")
-        self.conv2 = Conv2D(F, 3,activation='relu',padding="same")
+FACTOR = [1 , 1 , 1/2 , 1/2 , 1/4 ]
+
+class convBlock(tf.keras.layers.Layer):
+    def __init__(self, filters=64, batch_norm=True, activation='relu'):
+        super(convBlock, self).__init__()
+
+        conv = Conv2D(filters, 3, activation=None, padding="same")
+        activation = Activation(activation)
+
+        self.layers = [conv, activation]
+
+        if batch_norm:
+            bn = BatchNormalization()
+            self.layers.append(bn)
+        
+        
         
     def call(self, inputs):
+        x = inputs
+        for layer in self.layers:
+            x = layer(x)  
+        return x
 
-        outputs = self.conv1(inputs)
-        outputs = self.conv2(outputs)        
+class Encoder(tf.keras.layers.Layer):
+    def __init__(self, features=64, factors=FACTOR):
+        super(Encoder, self).__init__()
 
-        return outputs
+        self.convs = []
+        for factor in factors:
+            feature = int(factor*features)
+            conv = convBlock(feature)
+            self.convs.append(conv)
 
+    def call(self, inputs):
+        x = inputs
+        for conv in self.convs:
+            x = conv(x)
+    
+        return x
 
-class downBLock(tf.keras.layers.Layer):
-    def __init__(self, F, lvl):
-        super(downBLock, self).__init__()
+class Generator(tf.keras.layers.Layer):
+    def __init__(self, out_dim, features=64, factors=FACTOR):
+        super(Generator, self).__init__()
 
-        feature = F*(2**lvl)
-        self.down  = MaxPooling2D(pool_size=(2, 2))
-        self.conv1 = Conv2D(feature, 3,activation='relu',padding="same")
-        self.conv2 = Conv2D(feature, 3,activation='relu',padding="same")
+        self.convs = []
+
+        for factor in factors[-2::-1]:
+            feature = int(factor*features)
+            conv = convBlock(feature)
+            self.convs.append(conv)
         
+        conv = convBlock(out_dim, batch_norm=False)
+        self.convs.append(conv)
+    
     def call(self, inputs):
+        x = inputs
+        for conv in self.convs:
+            x = conv(x)
+    
+        return x
 
-        outputs = self.down(inputs)
-        outputs = self.conv1(outputs)
-        outputs = self.conv2(outputs)        
+class Discriminator(tf.keras.layers.Layer):
+    def __init__(self, features=64, factors=FACTOR):
+        super(Discriminator, self).__init__()
 
-        return outputs
-
-class blottleBlock(tf.keras.layers.Layer):
-    def __init__(self, F, lvl):
-        super(blottleBlock, self).__init__()
-
-        feature = F*(2**lvl)
-        self.down  = MaxPooling2D(pool_size=(2, 2))
-        self.conv1 = Conv2D(feature, 3,activation='relu',padding="same")
-        self.conv2 = Conv2D(int(feature/2), 3,activation='relu',padding="same")
-        
-    def call(self, inputs):
-
-        outputs = self.down(inputs)
-        outputs = self.conv1(outputs)
-        outputs = self.conv2(outputs)        
-
-        return outputs
-
-class upBlock(tf.keras.layers.Layer):
-    def __init__(self, F, lvl):
-        super(upBlock, self).__init__()
-
-        feature = F*(2**lvl)
-        self.up     = UpSampling2D(size=(2, 2))
-        self.concat = Concatenate()
-        self.conv1  = Conv2D(feature, 3,activation='relu',padding="same")
-        self.conv2  = Conv2D(int(feature/2), 3,activation='relu',padding="same")        
+        self.encoder = Encoder(features, factors)
+        self.last_conv = convBlock(1, batch_norm=False, activation='sigmoid')
 
     def call(self, inputs):
 
-        outputs = self.up(inputs[0])
-        outputs = self.concat([outputs,inputs[1]])
-        outputs = self.conv1(outputs)
-        outputs = self.conv2(outputs)
+        x = self.encoder(inputs)
+        x = self.last_conv(x)
 
-        return outputs
-
-class outBlock(tf.keras.layers.Layer):
-    def __init__(self, F):
-        super(outBlock, self).__init__()
-
-        self.up     = UpSampling2D(size=(2, 2))
-        self.concat = Concatenate()
-        self.conv1  = Conv2D(F, 3,activation='relu',padding="same")
-        self.conv2  = Conv2D(F, 3,activation='relu',padding="same")        
-
-    def call(self, inputs):
-
-        outputs = self.up(inputs[0])
-        outputs = self.concat([outputs,inputs[1]])
-        outputs = self.conv1(outputs)
-        outputs = self.conv2(outputs)
-
-        return outputs
+        return x
 
 
-class discriminator(tf.keras.layers.Layer):
-    def __init__(self, F):
-        super(discriminator, self).__init__()
 
-        self.conv1 = Conv2D(F, 3,activation='relu',padding="same")
-        self.conv2 = Conv2D(F, 3,activation='relu',padding="same")
-        self.conv3 = Conv2D(F, 3,activation='relu',padding="same")
-
-    def call(self, inputs):
-
-        outputs = self.conv1(inputs)
-        outputs = self.conv2(outputs)
-        outputs = self.conv3(outputs)
-
-        return outputs
