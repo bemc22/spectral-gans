@@ -10,8 +10,8 @@ from tensorflow.keras.losses import Loss , MSE
 def make_autoencoder(input_shape, features=64, factors=FACTOR):
     out_dim = input_shape[-1]
     _input = Input(input_shape)
-    encoder = Encoder(features=features, factors=FACTOR)
-    generator = Generator(out_dim, features=features, factors=FACTOR)
+    encoder = Encoder(features=features, factors=factors)
+    generator = Generator(out_dim, features=features, factors=factors)
 
     z = encoder(_input)    
     _output = generator(z)
@@ -20,7 +20,7 @@ def make_autoencoder(input_shape, features=64, factors=FACTOR):
 
 def make_discriminator(input_shape, features=64, factors=FACTOR):
     _input = Input(input_shape)
-    discriminator = Discriminator(features=features, factors=FACTOR)
+    discriminator = Discriminator(features=features, factors=factors)
     _output = discriminator(_input)
     model = Model( _input , _output , name='discriminator' )
     return model
