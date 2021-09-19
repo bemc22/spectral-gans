@@ -11,12 +11,13 @@ class convBlock(tf.keras.layers.Layer):
         conv = Conv2D(filters, 3, activation=None, padding="same")
         activation = Activation(activation)
 
-        self.layers = [conv, activation]
+        self.layers = [conv]
 
         if batch_norm:
             bn = BatchNormalization()
             self.layers.append(bn)
         
+        self.layers.append(activation)
         
         
     def call(self, inputs):
