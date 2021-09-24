@@ -9,26 +9,36 @@ class convBlock(tf.keras.layers.Layer):
     def __init__(self, filters=64, normalize=False, activation='relu'):
         super(convBlock, self).__init__()
 
-        conv = Conv2D(filters, 3,
+        branch1 = Conv2D(filters, (3,1),
                       activation=None,
                       padding="same",
                       kernel_regularizer=L2(1e-8))
-
-        activation = Activation(activation)
-
-        self.layers = [conv]
-        self.layers.append(activation)
+        
+        branch2 = Conv2D(filters, (1,3),
+                      activation=None,
+                      padding="same",
+                      kernel_regularizer=L2(1e-8))
+        
+        self.layers = []
 
         if normalize:
-            bn = LayerNormalization()
-            self.layers.append(bn)
+            self.layers.append(LayerNormalization())
+
+        self.layers.append( Activation(activation) )
+        self.b1 = branch1
+        self.b2 = branch2
 
         
 
     def call(self, inputs):
-        x = inputs
+
+        x1 = self.b1(inputs)
+        x2 = self.b2(inputs)
+        x = x1 + x2
+
         for layer in self.layers:
             x = layer(x)
+
         return x
 
 
@@ -89,3 +99,50 @@ class Discriminator(tf.keras.layers.Layer):
         x = self.encoder(inputs)
         x = self.last_conv(x)
         return x
+
+
+
+
+# Estructura del discriminador pix2pix
+def downsample(filters, size, apply_batchnorm=True):
+    initializer = tf.random_normal_initializer(0., 0.02)
+
+    result = tf.keras.Sequential()
+    result.add(
+        tf.keras.layers.Conv2D(filters, size, strides=2, padding='same',
+                               kernel_initializer=initializer, use_bias=False))
+
+    if apply_batchnorm:
+        result.add(tf.keras.layers.BatchNormalization())
+
+    result.add(tf.keras.layers.LeakyReLU())
+
+    return result
+
+def Discriminatorpix2pix():
+  initializer = tf.random_normal_initializer(0., 0.02)
+
+  inp = tf.keras.layers.Input(shape=[32, 32, 3], name='input_image')
+  tar = tf.keras.layers.Input(shape=[32, 32, 3], name='target_image')
+
+  x = tf.keras.layers.concatenate([inp, tar])  # (batch_size, 32, 32, channels*2)
+
+  down1 = downsample(64, 4, False)(x)  # (batch_size, 16, 16, 64)
+  down2 = downsample(128, 4)(down1)  # (batch_size, 8, 8, 128)
+
+  zero_pad1 = tf.keras.layers.ZeroPadding2D()(down2)
+
+  batchnorm1 = tf.keras.layers.BatchNormalization()(zero_pad1)
+
+  leaky_relu = tf.keras.layers.LeakyReLU()(batchnorm1)
+
+  zero_pad2 = tf.keras.layers.ZeroPadding2D()(leaky_relu)
+
+  last = tf.keras.layers.Conv2D(1, 4, strides=1,
+                                kernel_initializer=initializer)(zero_pad2)
+
+  return tf.keras.Model(inputs=[inp, tar], outputs=last)
+
+
+
+
