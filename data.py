@@ -47,9 +47,9 @@ def prepare(ds, shuffle=False, augment=False, batch_size=32, cache=False):
     if shuffle:
         ds = ds.shuffle(1000)
 
-    ds = ds.batch(batch_size)
+    ds = ds.batch(batch_size, drop_remainder=True)
 
-    ds = ds.map(lambda x: double_input(x), num_parallel_calls=AUTOTUNE)
+    # ds = ds.map(lambda x: double_input(x), num_parallel_calls=AUTOTUNE)
 
     return ds.prefetch(buffer_size=AUTOTUNE)
 
