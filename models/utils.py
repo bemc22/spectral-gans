@@ -1,6 +1,7 @@
 import tensorflow as tf
 from tensorflow.keras.metrics import mean_squared_error
 
+
 def discriminator_loss(real_output, fake_output):
     loss = tf.math.log(real_output) + tf.math.log(1 - fake_output)
     return - tf.math.reduce_mean(loss)

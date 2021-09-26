@@ -8,6 +8,20 @@ FACTOR = [1, 1, 1/2, 1/2, 1/4]
 NORMALIZE = False
 
 
+class encodedLayer(tf.keras.layers.Layer):
+    def __init__(self):
+        super(encodedLayer, self).__init__()
+
+    def build(self, input_shape):
+        self.alpha = self.add_weight("alpha", shape=input_shape[1:],
+            initializer=tf.keras.initializers.glorot_normal, 
+            trainable=True)
+    
+    def call(self, inputs):
+        return tf.multiply(inputs, self.alpha)
+
+
+
 class convBlock(tf.keras.layers.Layer):
     def __init__(self, filters=64, normalize=NORMALIZE, activation='relu'):
         super(convBlock, self).__init__()

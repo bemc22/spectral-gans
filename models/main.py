@@ -1,19 +1,30 @@
 import tensorflow as tf
 
-from models.layers import Encoder, Generator, Discriminator, FACTOR
 from tensorflow.keras.models import Model
-from tensorflow.keras.layers import Input
+from tensorflow.keras.layers import Input, Lambda
 from tensorflow.keras.losses import Loss , MSE
 
 
-def make_autoencoder(input_shape, features=64, factors=FACTOR):
+from models.layers import Encoder, Generator, Discriminator, encodedLayer , FACTOR
+from models.metrics import ACCURACY
+
+
+def make_generator(input_shape, features=64, factors=FACTOR):
+
     out_dim = input_shape[-1]
+    in_dim = int(features*factors[-1])
+    input_shape = input_shape[:-1] + (in_dim,)
+    z = Input(input_shape)
+    generator = Generator(out_dim, features=features, factors=factors)
+    _output = generator(z)
+    model = Model( z , _output , name='generator' )
+    return model
+
+def make_encoder(input_shape, features=64, factors=FACTOR):
     _input = Input(input_shape)
     encoder = Encoder(features=features, factors=factors)
-    generator = Generator(out_dim, features=features, factors=factors)
     z = encoder(_input)    
-    _output = generator(z)
-    model = Model( _input , _output , name='generator' )
+    model = Model( _input , z , name='encoder' )
     return model
 
 def make_discriminator(input_shape):
@@ -28,10 +39,20 @@ def make_discriminator(input_shape):
 
 
 class spectralGAN(tf.keras.Model):
-    def __init__(self, autoencoder, discriminator):
+    def __init__(self, encoder, generator, discriminator):
         super(spectralGAN, self).__init__()
-        self.autoencoder = autoencoder
+
+        self.encoder = encoder
+        self.generator = generator
+
+        self.autoencoder = tf.keras.Sequential(
+            [self.encoder, self.generator]
+        )
+
+
         self.discriminator = discriminator
+        self.real_acc = ACCURACY(1)
+        self.fake_acc = ACCURACY(0)
 
     def compile(self, a_optimizer, d_optimizer, a_loss, d_loss, metrics=[]):
         super(spectralGAN, self).compile(metrics=metrics)
@@ -72,6 +93,12 @@ class spectralGAN(tf.keras.Model):
 
         for m in self.metrics:
             resul[m.name] = m.result()
+        
+        real_acc = self.real_acc(real_output)
+        fake_acc = self.fake_acc(fake_output)
+
+        resul['real_acc'] = real_acc
+        resul['fake_acc'] = fake_acc
 
         return  resul
 
@@ -86,13 +113,38 @@ class spectralGAN(tf.keras.Model):
 
         for m in self.metrics:
             resul[m.name] = m.result()
+
+        real_acc = self.real_acc(real_output)
+        fake_acc = self.fake_acc(fake_output)
+
+        resul['real_acc'] = real_acc
+        resul['fake_acc'] = fake_acc
         
         return resul
 
 
 
+class spectralGen(tf.keras.Model):
+    def __init__(self, generator, discriminator, name='spectralGen', **kwargs):
+        super(spectralGen, self).__init__(name=name, **kwargs)
 
-
-
-
+        self.alpha = encodedLayer()
+        self.generator = generator
+        self.discriminator = discriminator
+        self.generator.trainable = False
+        self.discriminator.trainable = False
+        self.mean = Lambda( lambda x:  tf.reduce_mean(x, axis=-1, keepdims=True) )
     
+    def call(self, inputs, training=None):
+        
+        x , target = inputs
+        x = self.alpha(x)
+        generated = self.generator(x)
+        _output = self.discriminator([generated , target])
+
+        _target =  self.mean(generated)
+        target_loss = 100*tf.reduce_mean( tf.square( target - _target ) )
+        self.add_loss(target_loss)
+
+        return _output
+
