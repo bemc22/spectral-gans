@@ -118,11 +118,11 @@ def downsample(filters, size, apply_batchnorm=True):
     return result
 
 
-def Discriminatorpix2pix():
+def Discriminatorpix2pix(  in_shape=(32, 32, 3), tar_shape = (32, 32, 1)):
     initializer = tf.random_normal_initializer(0., 0.02)
 
-    inp = tf.keras.layers.Input(shape=[32, 32, 3], name='input_image')
-    tar = tf.keras.layers.Input(shape=[32, 32, 3], name='target_image')
+    inp = tf.keras.layers.Input(shape=in_shape, name='input_image')
+    tar = tf.keras.layers.Input(shape=tar_shape, name='target_image')
 
     # (batch_size, 32, 32, channels*2)
     x = tf.keras.layers.concatenate([inp, tar])
