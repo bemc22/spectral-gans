@@ -14,7 +14,7 @@ class encodedLayer(tf.keras.layers.Layer):
 
     def build(self, input_shape):
         self.alpha = self.add_weight("alpha", shape=input_shape[1:],
-            initializer=tf.keras.initializers.glorot_normal, 
+            initializer=tf.keras.initializers.glorot_uniform, 
             trainable=True)
     
     def call(self, inputs):
@@ -131,14 +131,14 @@ class Discriminator(tf.keras.layers.Layer):
 
         self.layers = [
             Concatenate(),
-            DownSample(64, 4, False),
-            DownSample(128, 4),
-            ZeroPadding2D(),
-            BatchNormalization(),
-            LeakyReLU(),
-            ZeroPadding2D(),
-            Conv2D(1, 4, strides=1, activation='sigmoid',
-                   kernel_initializer=initializer)
+            DownSample(64, 2, False),
+            DownSample(128, 2),     
+            #ZeroPadding2D(),       
+            #BatchNormalization(),     
+            #LeakyReLU(),
+            #ZeroPadding2D(),       
+            Conv2D(1, 2, strides=1, activation='sigmoid',
+                   kernel_initializer=initializer)  
         ]
 
     def call(self, inputs):
