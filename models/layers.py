@@ -4,7 +4,7 @@ from tensorflow.keras.models import Model
 from tensorflow.keras.regularizers import L2
 
 
-FACTOR = [1, 1, 1/2, 1/2, 1/4]
+FACTOR = [1/4, 1/4, 1/2, 1/2, 1]
 NORMALIZE = False
 
 

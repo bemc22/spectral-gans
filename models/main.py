@@ -65,7 +65,7 @@ class spectralGAN(tf.keras.Model):
     def call(self, inputs, training=None):
 
         target = tf.reduce_mean(inputs, axis=-1, keepdims=True)
-        generated = self.autoencoder(inputs, training=training)
+        generated = self.autoencoder(target, training=training)
         real_output = self.discriminator([inputs, target], training=training)
         fake_output = self.discriminator([generated, target], training=training)
 
@@ -122,7 +122,6 @@ class spectralGAN(tf.keras.Model):
         resul['fake_acc'] = fake_acc
         
         return resul
-
 
 
 class spectralGen(tf.keras.Model):
