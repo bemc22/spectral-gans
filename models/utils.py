@@ -32,14 +32,7 @@ def soft_threshold(V, tau=1, ro=1):
     resul = V1 + V2
     return resul
     
-
-
-def spec2rgb(x):
-  (m,n, la) = np.shape(im)[1:]
-  rgb = np.zeros((1, m, n, 3))
-  rango = int(np.round(la/3))
-
-  rgb[0, : , : , 2] = np.mean(x[0, :, :, 0:rango], axis = 2)
-  rgb[0, : , : , 1] = np.mean(x[0, :, :, rango: 2*rango], axis = 2)
-  rgb[0, : , : , 0] = np.mean(x[0, :, :, 2*rango:], axis = 2)
+@tf.function
+def spec2rgb(_inputs, CMF):
+  rgb = (_inputs @ CMF)
   return rgb

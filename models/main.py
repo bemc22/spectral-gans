@@ -7,7 +7,7 @@ from tensorflow.keras.losses import Loss , MSE
 
 from models.layers import Encoder, Generator, Discriminator, encodedLayer , FACTOR
 from models.metrics import ACCURACY
-from models.utils import spacial_tv
+from models.utils import spacial_tv, spec2rgb
 
 
 def make_generator(input_shape, features=64, factors=FACTOR):
@@ -29,7 +29,7 @@ def make_encoder(input_shape, features=64, factors=FACTOR):
     return model
 
 def make_discriminator(input_shape):
-    target_shape = input_shape[:-1] + (1,)
+    target_shape = input_shape[:-1] + (3,)
     _input = Input(input_shape)
     _target = Input(target_shape)
     discriminator = Discriminator()
@@ -40,7 +40,7 @@ def make_discriminator(input_shape):
 
 
 class spectralGAN(tf.keras.Model):
-    def __init__(self, encoder, generator, discriminator):
+    def __init__(self, encoder, generator, discriminator, CMF):
         super(spectralGAN, self).__init__()
 
         self.encoder = encoder
@@ -50,7 +50,7 @@ class spectralGAN(tf.keras.Model):
             [self.encoder, self.generator]
         )
 
-
+        self.spec2rgb = Lambda( lambda x:  spec2rgb(x, CMF) )
         self.discriminator = discriminator
         self.real_acc = ACCURACY(1)
         self.fake_acc = ACCURACY(0)
@@ -64,7 +64,7 @@ class spectralGAN(tf.keras.Model):
 
     def call(self, inputs, training=None):
 
-        target = tf.reduce_mean(inputs, axis=-1, keepdims=True)
+        target =    self.spec2rgb(inputs)
         generated = self.autoencoder(target, training=training)
         real_output = self.discriminator([inputs, target], training=training)
         fake_output = self.discriminator([generated, target], training=training)
@@ -125,7 +125,7 @@ class spectralGAN(tf.keras.Model):
 
 
 class spectralGen(tf.keras.Model):
-    def __init__(self, encoder, generator, discriminator,  rho , name='spectralGen', **kwargs):
+    def __init__(self, encoder, generator, discriminator,  rho, CMF, name='spectralGen', **kwargs):
         super(spectralGen, self).__init__(name=name, **kwargs)
 
         self.alpha = encodedLayer()
@@ -136,7 +136,7 @@ class spectralGen(tf.keras.Model):
         self.discriminator.trainable = False
         self.encoder.trainable = False
         self.rho = rho
-        self.mean = Lambda( lambda x:  tf.reduce_mean(x, axis=-1, keepdims=True) )
+        self.spec2rgb = Lambda( lambda x:  spec2rgb(x, CMF) )
         self.tv = Lambda( lambda  x: spacial_tv(x))
     
     def call(self, inputs, training=None):
@@ -146,7 +146,7 @@ class spectralGen(tf.keras.Model):
         generated = self.generator(alpha)
         _output = self.discriminator([generated , target])
 
-        _target =  self.mean(generated)
+        _target =  self.spec2rgb(generated)
 
         target_loss = 100*tf.reduce_mean( tf.square( target - _target ) )        
         alpha_loss = 100*tf.reduce_mean(tf.square(  alpha - self.encoder(generated)  ) )
