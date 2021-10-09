@@ -9,14 +9,14 @@ def discriminator_loss(real_output, fake_output):
     return - tf.math.reduce_mean(loss)
     
 def autoencoder_loss(real_x, estimated_x, real_output, fake_output, tau=1e-4):
-    autoencoder_loss = mean_squared_error(real_x, estimated_x)
+    autoencoder_loss = tf.reduce_mean( tf.square(real_x - estimated_x) )
     gan_loss =  tau*discriminator_loss(real_output, fake_output)
     total_loss = autoencoder_loss - gan_loss
     return total_loss
 
 def generator_loss(y_true, y_pred):
-    loss = tf.math.log(y_pred)*y_true + tf.math.log( 1 - y_pred)*y_true
-    return - tf.math.reduce_mean(loss)
+    loss = tf.log(y_pred)*y_true + tf.log( 1 - y_pred)*y_true
+    return - tf.reduce_mean(loss)
 
 @tf.function
 def spacial_tv(inputs):
