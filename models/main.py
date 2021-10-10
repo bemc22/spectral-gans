@@ -64,7 +64,7 @@ class spectralGAN(tf.keras.Model):
 
     def call(self, inputs, training=None):
 
-        target =    self.spec2rgb(inputs)
+        target =  self.spec2rgb(inputs)
         generated = self.autoencoder(target, training=training)
         real_output = self.discriminator([inputs, target], training=training)
         fake_output = self.discriminator([generated, target], training=training)
