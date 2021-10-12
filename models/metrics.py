@@ -1,5 +1,5 @@
 import tensorflow as tf
-
+import math
 
 def PSNR( max_val=1):
 
@@ -15,7 +15,16 @@ def SSIM( max_val=1):
         return tf.image.ssim(y_true, y_pred, max_val=max_val)
 
     return  ssim
-
+ 
+def SAM(y_true,y_pred):
+    
+    pp = tf.sqrt(tf.reduce_sum(tf.pow(y_true,2), 2, keepdims=True))+ 2.2e-16
+    pp2 = tf.sqrt(tf.reduce_sum(tf.pow(y_pred,2), 2, keepdims=True)) + 2.2e-16
+    y_true = tf.divide(y_true,pp)
+    y_pred = tf.divide(y_pred,pp2)
+    z = tf.reduce_sum(tf.multiply(y_true,y_pred),2)
+    z = tf.reduce_mean(tf.arccos(z-2.2e-16)*180/ math.pi)
+    return z
 
 def ACCURACY(value):
 
