@@ -5,9 +5,9 @@ from tensorflow.keras.layers import Input, Lambda
 from tensorflow.keras.losses import Loss , MSE
 
 
-from models.layers import Encoder, Generator, Discriminator, encodedLayer , FACTOR
-from models.metrics import ACCURACY
-from models.utils import spacial_tv, spec2rgb
+from spectral_gans.models.layers import Encoder, Generator, Discriminator, encodedLayer , FACTOR
+from spectral_gans.models.metrics import ACCURACY
+from spectral_gans.models.utils import spacial_tv, spec2rgb
 
 
 def make_generator(input_shape, features=64, factors=FACTOR):
