@@ -6,4 +6,4 @@ Las imágenes espectrales contienen la información espacial y espectral de una 
 
 Basados en el hecho de que una imagen espectral puede mapearse a una imagen RGB mediante el uso de un espacio de color definido matemáticamente, el presente trabajo haciendo uso de redes generativas adversarias busca resolver el problema inverso, es decir, a partir de una imagen RGB obtener la imagen espectral asociada, permitiendo generar y construir nuevos conjuntos de datos de imágenes espectrales a partir de imágenes RGB.
 
-[Codigo](https://github.com/bemc22/spectral-gans) | [Video](https://drive.google.com/file/d/1n8R0v5nHzd50XxuVdNP4iFXYuNrLz5oO/view?usp=sharing)
+[Codigo](https://github.com/bemc22/spectral-gans) | [Video](https://drive.google.com/file/d/1n8R0v5nHzd50XxuVdNP4iFXYuNrLz5oO/view?usp=sharing) | [Dataset](http://vclab.kaist.ac.kr/siggraphasia2017p1/kaistdataset.html)
