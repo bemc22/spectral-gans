@@ -2,5 +2,4 @@ desktop.ini
 .ipynb_checkpoints
 .idea
 __pycache__
-*.h5
 *.lnk
