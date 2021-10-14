@@ -122,39 +122,3 @@ class spectralGAN(tf.keras.Model):
         resul['fake_acc'] = fake_acc
         
         return resul
-
-
-class spectralGen(tf.keras.Model):
-    def __init__(self, encoder, generator, discriminator,  rho, CMF, name='spectralGen', **kwargs):
-        super(spectralGen, self).__init__(name=name, **kwargs)
-
-        self.alpha = encodedLayer()
-        self.generator = generator
-        self.discriminator = discriminator
-        self.encoder = encoder
-        self.generator.trainable = False
-        self.discriminator.trainable = False
-        self.encoder.trainable = False
-        self.rho = rho
-        self.spec2rgb = Lambda( lambda x:  spec2rgb(x, CMF) )
-        self.tv = Lambda( lambda  x: spacial_tv(x))
-    
-    def call(self, inputs, training=None):
-        
-        x , target, term = inputs
-        alpha = self.alpha(x)
-        generated = self.generator(alpha)
-        _output = self.discriminator([generated , target])
-
-        _target =  self.spec2rgb(generated)
-
-        target_loss = 100*tf.reduce_mean( tf.square( target - _target ) )        
-        alpha_loss = 100*tf.reduce_mean(tf.square(  alpha - self.encoder(generated)  ) )
-        tv_loss = 0.5*self.rho*( tf.reduce_mean(tf.square(  self.tv(generated) + term  )))
-
-        self.add_loss(target_loss)
-        self.add_loss(tv_loss)
-        self.add_loss(alpha_loss)
-
-        return _output
-
