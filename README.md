@@ -1,5 +1,7 @@
 # GANs con Imágenes Espectrales
 
+![](imgs/banner.png)
+
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/bemc22/spectral-gans/blob/main/notebooks/train.ipynb)
 
 Las imágenes espectrales contienen la información espacial y espectral de una escena, esta información espectral es de gran utilidad en áreas como el censado remoto, la detección de materiales o la agricultura de precisión. Sin embargo, la adquisición de este tipo de imágenes es un problema desafiante debido a la alta dimensionalidad de las mismas. En los últimos años enfoques basados en aprendizaje profundo han explorado técnicas para la adquisición de este tipo de imágenes ofreciendo buenos resultados al evaluarse en un conjunto de datos especifico. A su vez, este tipo de enfoques deben contar con un conjunto de datos ya preexistente para poder explotar al máximo las capacidades de los modelos de redes neuronales y debido a la alta dimensionalidad de este tipo de imágenes, nos encontramos con un problema de escasez de datos. 
